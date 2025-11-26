@@ -21,6 +21,12 @@ class Loan extends Model
         'returned_at' => 'datetime',
     ];
 
+    protected $dates = [
+        'loaned_at',
+        'returned_at',
+        'due_at',
+    ];
+
     public function book()
     {
         return $this->belongsTo(Book::class);

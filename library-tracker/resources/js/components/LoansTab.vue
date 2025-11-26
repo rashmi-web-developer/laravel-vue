@@ -23,6 +23,15 @@
         {{ item.returned_at ? moment(item.returned_at).format('MMM Do YYYY \\a\\t h:mm A') : '-' }}
       </template>
 
+      <template #item.due_at="{item}">
+        {{ item.due_at ? moment(item.due_at).format('MMM Do YYYY \\a\\t h:mm A') : '-' }}
+      </template>
+
+      <template #item.actions="{item}">
+        <v-btn size="small" variant="text" icon="mdi-pencil" @click="extendLoan(item.id)">
+          <v-icon icon="mdi-pencil" />
+        </v-btn>
+      </template>
       <template #loading>
         <v-sheet class="pa-4 text-center">Loading loans...</v-sheet>
       </template>
@@ -50,6 +59,8 @@ export default {
         { title: 'Book', key: 'book.title' },
         { title: 'Loan Date', key: 'loaned_at' },
         { title: 'Return Date', key: 'returned_at' },
+        { title: 'Due Date', key: 'due_at' },
+        { title: 'Actions', key: 'actions', sortable: false },
       ],
     };
   },
@@ -66,6 +77,29 @@ export default {
         })
         .finally(() => this.loading = false);
     },
+    formateDueDate(dueAt) 
+    {
+      if (!dueAt) return '-';
+      const now = new Date();
+      const dueDate = new Date(dueAt);
+      if (dueDate < now) return 'Overdue';
+      const diffm = due - now;
+      const diffDays = Math.ceil(diffm / (1000 * 60 * 60 * 24));
+      return `+${diffDays} days`;
+    },
+    extendLoan(id) {
+      axios.put(`/api/v1/loans/extend/${id}`, {
+        additional_days: 14
+      })
+      .then(r => {
+        toast(r.data.message, {type: 'success'});
+        this.loadLoans();
+      })
+      .catch(e => {
+        toast(e.response?.data?.message || e.response?.statusText || 'Error', {type: 'error'});
+        console.error(e);
+      });
+    }
   },
 
   mounted () {

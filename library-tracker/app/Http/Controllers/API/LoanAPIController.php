@@ -57,4 +57,17 @@ class LoanAPIController extends Controller
 
         return response()->noContent();
     }
+
+    public function putExtend(Request $request, Loan $loan) {
+        if ($loan->due_at < now()) {
+            return response()->json(['message' => 'Loan is already overdue.'], 422);
+        }
+        $validator = $request->validate([
+           'additional_days' => 'required|integer|min:1|max:14',
+        ]);
+        $loan->due_at = $loan->due_at->addDays($validator['days']);
+        $loan->save();
+        return response()->json(['message' => 'Loan extended successfully.',
+    'loan' => $loan]);
+    }
 }
